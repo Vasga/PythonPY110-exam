@@ -9,15 +9,20 @@ from conf import MODEL
 fake_ru = Faker('ru_RU')
 
 
-def pk(s, st=1) -> int:
+def pk() -> Callable[[], int]:
     """
     счётчик, который увеличивается на единицу при генерации нового объекта
 
+
     """
-    pk1 = s
-    while True:
-        yield pk1
-        pk1 += st
+    pk1 = 0
+
+    def pk_() -> int:
+        nonlocal pk1
+        pk1 += 1
+        return pk1
+
+    return pk_
 
 
 def title() -> str:
@@ -42,7 +47,7 @@ def year() -> int:
 def pages() -> int:
     """
     страницы является натуральным числом и генерируется случайным образом
-
+    :return:
     """
     pag = random.randint(100, 500)
     return pag
@@ -88,22 +93,21 @@ def author() -> tuple:
         return author_1
 
 
-def main(x):
+def main():
     """
-    функцию-генератор, которая возвращает словари книг
-    :param x это“pk” является  счётчиком, который увеличивается на единицу при генерации нового объекта:
+    функцию-генератор, которая возвращает словари
     """
     dict_ = {}
-    pk1_ = pk(x, 1)
-    for i in range(1, 101 + x):
-        dict_[i] = {"model": MODEL, "pk": next(pk1_),
+    pk1_ = pk()
+    for i in range(1, 101):
+        dict_[i] = {"model": MODEL, "pk": pk1_(),
                     "fields": {"title": title(), "year": year(),
                                "pages": pages(), "isbn13": isbn13(),
                                "rating": rating(), "price": price(),
-                               "author": author()}}
+                               "author": [author()]}}
         with open("DS.txt", 'w', encoding='utf-8') as f:
             json.dump(dict_, f, indent=4, ensure_ascii=False)
 
 
 if __name__ == "__main__":
-    main(1)
+    main()
